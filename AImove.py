@@ -40,6 +40,8 @@ def greedy_algorithm(gamestate):
         gamestate.undoMove()
     
     return bestMove
+
+    
 #No recursion, two moves ahead (1 turn)
 def simple_minmax_algorithm(gamestate):
     
