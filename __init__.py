@@ -77,6 +77,7 @@ def main():
 
         for event in pg.event.get():  # Esto te permite usar la X pa salir del programa
             if event.type == pg.QUIT:
+                print(gamestate.fake_FEN)
                 run = False
 
             #---------------------Undo Move and reset game -------------------------------------------------------

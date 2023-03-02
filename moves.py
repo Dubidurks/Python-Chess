@@ -35,13 +35,11 @@ class PieceMoves():
                 if row - 1 >= 0:
                     if splited_Board[row - 1][col] == "1":
                         if not piecePinned or pinDirection == (-1, 0):
-                            moves.append(
-                                Move((row, col), (row - 1, col), self.fake_FEN))
+                            moves.append(Move((row, col), (row - 1, col), self.fake_FEN))
 
                         # Two squares ahead
                         if row == 6 and splited_Board[row - 2][col] == "1" and (not piecePinned or pinDirection == (-1, 0)):
-                            moves.append(
-                                Move((row, col), (row - 2, col), self.fake_FEN))
+                            moves.append(Move((row, col), (row - 2, col), self.fake_FEN))
 
                 # Dont capture if offboard to the left
                 if col - 1 >= 0:
@@ -49,8 +47,7 @@ class PieceMoves():
                     if row - 1 >= 0 and col - 1 >= 0:
                         if splited_Board[row - 1][col - 1].islower():
                             if not piecePinned or pinDirection == (-1, -1):
-                                moves.append(
-                                    Move((row, col), (row - 1, col - 1), self.fake_FEN))
+                                moves.append(Move((row, col), (row - 1, col - 1), self.fake_FEN))
 
                 # Dont capture if offboard to the right
                 if col + 1 < len(splited_Board[row]):
@@ -59,20 +56,79 @@ class PieceMoves():
                             if not piecePinned or pinDirection == (-1, 1):
                                 moves.append(Move((row, col), (row - 1, col + 1), self.fake_FEN))
 
+                kingRow, kingCol = self.whiteKingLocation
                 # Add move if can capture en_passant
                 if en_passant != "-":
                     if row - 1 == en_passantRow:
                         add_toRow, add_toCol = 0, 0
+                        
                         # If can capture en_passant and piece to the side is enemy
+                        #right
                         if (col + 1 == en_passantCol and splited_Board[row][col + 1].islower()):
                             # Pawn to capture if en_passant move
                             add_toRow, add_toCol = -1, +1
+                            blocking_piece = attacking_piece = False
+
+                            if kingRow == row:
+                                #Left of the pawn
+                                if kingCol < col:
+                                    #inside between king and pawn, outside pawn border
+                                    insideRange = range(kingCol + 1, col)
+                                    outsideRange = range(col + 2, 8)
+                                else:
+                                    #King right of the pawn
+                                    insideRange = range(kingCol - 1, col + 1, - 1)
+                                    outsideRange = range(col - 1, -1, -1)
+
+                                for i in insideRange:
+                                    piece = splited_Board[row][i]
+                                    if piece != "1":
+                                        blocking_piece = True
+
+                                for i in outsideRange:
+                                    piece = splited_Board[row][i]
+                                    if piece == "q" or piece == "r":
+                                        attacking_piece = True
+                                    
+                                    elif piece != "1":
+                                        blocking_piece = True
+
+                            if not attacking_piece or blocking_piece:
+                                pawn = (row + add_toRow, col + add_toCol)
+                                moves.append(Move((row, col), (row + add_toRow, col + add_toCol), self.fake_FEN, passant=pawn))                            
+
+                        #Left
                         elif (col - 1 == en_passantCol and splited_Board[row][col - 1].islower()):
                             add_toRow, add_toCol = -1, -1
+                            blocking_piece = attacking_piece = False
 
-                        if add_toRow != 0:
-                            pawn = (row + add_toRow, col + add_toCol)
-                            moves.append(Move((row, col), (row + add_toRow, col + add_toCol), self.fake_FEN, passant=pawn))
+                            if kingRow == row:
+                                #Left of the pawn
+                                if kingCol < col:
+                                    #inside between king and pawn, outside pawn border
+                                    insideRange = range(kingCol + 1, col - 1)
+                                    outsideRange = range(col + 1, 8)
+                                else:
+                                    #King right of the pawn
+                                    insideRange = range(kingCol - 1, col, - 1)
+                                    outsideRange = range(col - 2, -1, -1)
+
+                                for i in insideRange:
+                                    piece = splited_Board[row][i]
+                                    if piece != "1":
+                                        blocking_piece = True
+
+                                for i in outsideRange:
+                                    piece = splited_Board[row][i]
+                                    if piece == "q" or piece == "r":
+                                        attacking_piece = True
+                                    
+                                    elif piece != "1":
+                                        blocking_piece = True
+
+                            if not attacking_piece or blocking_piece:
+                                pawn = (row + add_toRow, col + add_toCol)
+                                moves.append(Move((row, col), (row + add_toRow, col + add_toCol), self.fake_FEN, passant=pawn))
 
         ########### Black to move#######################################
             if self.player_toMove == "b":
@@ -101,7 +157,8 @@ class PieceMoves():
                             if not piecePinned or pinDirection == (1, 1):
                                 moves.append(
                                     Move((row, col), (row + 1, col + 1), self.fake_FEN))
-
+                
+                kingRow, kingCol = self.blackKingLocation
                 # Add move if can capture en_passant
                 if en_passant != "-":
                     if row + 1 == en_passantRow:
@@ -110,12 +167,69 @@ class PieceMoves():
                         if (col + 1 == en_passantCol and splited_Board[row][col + 1].isupper()):
                             # Pawn to capture if en_passant
                             add_toRow, add_toCol = +1, +1
+                            blocking_piece = attacking_piece = False
+
+                            if kingRow == row:
+                                #Left of the pawn
+                                if kingCol < col:
+                                    #inside between king and pawn, outside pawn border
+                                    insideRange = range(kingCol + 1, col)
+                                    outsideRange = range(col + 2, 8)
+                                else:
+                                    #King right of the pawn
+                                    insideRange = range(kingCol - 1, col + 1, - 1)
+                                    outsideRange = range(col - 1, -1, -1)
+
+                                for i in insideRange:
+                                    piece = splited_Board[row][i]
+                                    if piece != "1":
+                                        blocking_piece = True
+
+                                for i in outsideRange:
+                                    piece = splited_Board[row][i]
+                                    if piece == "Q" or piece == "R":
+                                        attacking_piece = True
+                                    
+                                    elif piece != "1":
+                                        blocking_piece = True
+                                        
+                            if not attacking_piece or blocking_piece:
+                                pawn = (row + add_toRow, col + add_toCol)
+                                moves.append(Move((row, col), (row + add_toRow, col + add_toCol), self.fake_FEN, passant=pawn))
+
+                            
                         elif (col - 1 == en_passantCol and splited_Board[row][col - 1].isupper()):
                             add_toRow, add_toCol = +1, -1           
-                                             
-                        if add_toRow != 0:
-                            pawn = (row + add_toRow, col + add_toCol)
-                            moves.append(Move((row, col), (row + add_toRow, col + add_toCol), self.fake_FEN, passant=pawn))
+                            blocking_piece = attacking_piece = False
+
+                            if kingRow == row:
+                                #Left of the pawn
+                                if kingCol < col:
+                                    #inside between king and pawn, outside pawn border
+                                    insideRange = range(kingCol + 1, col - 1)
+                                    outsideRange = range(col + 1, 8)
+                                else:
+                                    #King right of the pawn
+                                    insideRange = range(kingCol - 1, col, - 1)
+                                    outsideRange = range(col - 2, -1, -1)
+
+                                for i in insideRange:
+                                    piece = splited_Board[row][i]
+                                    if piece != "1":
+                                        blocking_piece = True
+
+                                for i in outsideRange:
+                                    piece = splited_Board[row][i]
+                                    if piece == "Q" or piece == "R":
+                                        attacking_piece = True
+                                    
+                                    elif piece != "1":
+                                        blocking_piece = True
+                                        
+                            print(attacking_piece, blocking_piece)
+                            if not attacking_piece or blocking_piece:
+                                pawn = (row + add_toRow, col + add_toCol)
+                                moves.append(Move((row, col), (row + add_toRow, col + add_toCol), self.fake_FEN, passant=pawn))
 
 # Get all rook moves for a certain square and add them to the moves list
 

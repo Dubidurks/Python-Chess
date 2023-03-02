@@ -4,21 +4,15 @@ from moves import PieceMoves, coordX, coordY
 # Still need to add:
 # 1. Add way to select Pawn Promotion in gui
 # 2. Stalemate logic for more than 50 moves or insufficient material
-#Fix
-# 1. Castle rights doesn't work if start position has rocks in different columns. The same would happen if kings start on different columns
-#    Need to differentiate between queenside and kingside castle for black and white separately. 
-#    rock king col and rock queen col must be different for white and black
-# 2. Some positions are falselly read as being in check, such as 
-        #self.current_FEN = "1r1k3r/2p5/8/3P4/4pp2/8/3P4/R3K2R b KQ -"
-
 
 class GameState(PieceMoves):
     def __init__(self):
         self.current_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -"
-        #self.current_FEN = "r3k2r/pppp2p1/8/8/8/8/1PPP4/R3K2R b KQq -"
+        #self.current_FEN = "1nbq1bn1/1pppppp1/11n11111/p6p/Q1pkp1nR/P1111111/1PPPPPPP/R1BQKBNR w - -"
 
         # fake_FEN sirve para reemplazar los números originales de la fen por tantos 1 como número aparezca
         # (debido a que un 3 significaría 3 epacios vacios (o 1's) por ejemplo)
+        
         self.fake_FEN = ""
         self.player_toMove = ""
 
@@ -40,11 +34,12 @@ class GameState(PieceMoves):
         self.history_Boards = []
 
         # Setting some values for initial king location
-        self.whiteKingLocation = (0, 0)
-        self.blackKingLocation = (0, 0)
+        self.whiteKingLocation = ()
+        self.blackKingLocation = ()
 
         # Make the first update before the castling stuff (it needs the king column and fake_fen)
         self.update(self.current_FEN)
+
 
         # --------------------Castling Stuff----------------
         self.kingSide_rockCol = 7
@@ -72,14 +67,6 @@ class GameState(PieceMoves):
         else:
             self.fake_FEN = " ".join(splited_fen)
 
-        # ---------------------------------------------------------------
-        # Update Valid Moves
-        self.validMoves = self.getValidMoves()
-
-        # This is to avoid append new board when undoing, since it's the last
-        if not undoing:
-            self.history_Boards.append(new_fen)
-
         # Updating values for kings location
         splited_fen = self.fake_FEN.split(" ")[0].split("/")
         for x, row in enumerate(splited_fen):
@@ -90,8 +77,17 @@ class GameState(PieceMoves):
                 elif splited_fen[x][y] == "k":
                     self.blackKingLocation = (x, y)
 
+        # ---------------------------------------------------------------
+        # Update Valid Moves
+        self.validMoves = self.getValidMoves()
+
+        # This is to avoid append new board when undoing, since it's the last
+        if not undoing:
+            self.history_Boards.append(new_fen)
+
+
         #Last move must be registered as making a check (for the displaying moves panel) if inCheck
-        if self.inCheck:
+        if self.inCheck and len(self.history_Moves) > 0:
             self.history_Moves[-1].check = True
 
         if len(self.validMoves) == 0:
@@ -408,10 +404,8 @@ class GameState(PieceMoves):
                     # If the move leaves the king in check, remove it
                     elif moves[i].pieceMoved.upper() == "K":
                         inCheck = False
-                        checkSquare = (moves[i].endRow,
-                                       moves[i].endCol)
-                        inCheck, _, _ = self.checkForPinsAndChecks(
-                            checkSquare=checkSquare)
+                        checkSquare = (moves[i].endRow,moves[i].endCol)
+                        inCheck, _, _ = self.checkForPinsAndChecks(checkSquare=checkSquare)
                         if inCheck:
                             moves.remove(moves[i])
             # Double check, king has to move
@@ -438,8 +432,7 @@ class GameState(PieceMoves):
             for i in range(len(moves) - 1, -1, -1):
                 if moves[i].pieceMoved.upper() == "K":
                     inCheck = False
-                    checkSquare = (moves[i].endRow,
-                                   moves[i].endCol)
+                    checkSquare = (moves[i].endRow,moves[i].endCol)
                     inCheck, _, _ = self.checkForPinsAndChecks(
                         checkSquare=checkSquare)
                     if inCheck:
