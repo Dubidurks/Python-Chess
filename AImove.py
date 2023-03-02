@@ -221,7 +221,7 @@ def negamax_algorithm(gamestate, depth, turnMultiplier):
     return maxScore
 
 #First call from init
-def findBestMove(gamestate):
+def findBestMove(gamestate, returnQueue):
     global nextMove, counter
     #To see how many times the method is called
     counter = 0
@@ -239,7 +239,7 @@ def findBestMove(gamestate):
     negamax_algorithm_ab(gamestate, MAX_DEPTH, isMaximizing, -CHECKMATE, CHECKMATE)
     print(counter)
 
-    return nextMove
+    return returnQueue.put(nextMove)
 
 
 #Negamax with alpha beta prunning

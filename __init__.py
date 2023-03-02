@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from random import choice
 import pygame as pg
+from multiprocessing import Process, Queue
 from game import GameState
 from moves import Move
 import AImove as ai
@@ -68,6 +69,10 @@ def main():
     # Initialize the scroll position to zero
     scroll_pos = 0
 
+    #To bein able to interact with the board while the ai thinks
+    AiThinking = False
+    moveFinderProcess = None
+
     run = True
     while run:
         clock.tick(FPS)
@@ -78,6 +83,8 @@ def main():
         for event in pg.event.get():  # Esto te permite usar la X pa salir del programa
             if event.type == pg.QUIT:
                 #print(gamestate.fake_FEN)
+                if AiThinking:
+                        validMoveProcess.terminate()
                 run = False
 
             #---------------------Undo Move and reset game -------------------------------------------------------
@@ -88,11 +95,16 @@ def main():
                     if cpus != 0:
                         # undo last two moves
                         if len(gamestate.history_Boards) > 2:
-                            last_played = gamestate.undoMove()
-                            last_played = gamestate.undoMove()
+                            gamestate.undoMove()
+                            gamestate.undoMove()
+
                     else:
                         if len(gamestate.history_Boards) > 1:
                             last_played = gamestate.undoMove()
+                    
+                    if AiThinking:
+                        validMoveProcess.terminate()
+                        AiThinking = False
                 
                 # Reset Game... press 'r'
                 if event.key == pg.K_r:
@@ -119,15 +131,26 @@ def main():
 
             #Cpu controlls two players or 1            
             vsCpus = (gamestate.player_toMove == default_cpu or "w") if cpus == 2 else (gamestate.player_toMove == default_cpu)                          
+            
+            #If cpus turns to move and game not over and not thinking
+            if vsCpus and not gamestate.gameOver: 
+                if not AiThinking:
+                    AiThinking = True
+                    print("Thinking...")
+                    #Used to pass data between threads
+                    returnQueue = Queue()
+                    validMoveProcess = Process(target=ai.findBestMove, args=(gamestate, returnQueue))                             
+                    #Call with the parameters
+                    validMoveProcess.start()
 
-            #If cpus turns to move and game not over
-            if vsCpus and not gamestate.gameOver:
-                #validMove = ai.simple_minmax_algorithm(gamestate)
-                validMove = ai.findBestMove(gamestate)
-                if validMove is None:
-                    validMove = ai.greedy_algorithm(gamestate)
+                if not validMoveProcess.is_alive():
+                    print("Done thinking")
+                    validMove = returnQueue.get()
+                    if validMove is None:
+                        validMove = ai.random_move(gamestate.validMoves)
 
-                moveMade = True
+                    moveMade = True
+                    AiThinking = False
                 
         #-----------------------------------------------------------------------                
 
@@ -136,8 +159,10 @@ def main():
             moveMade = False
             if ANIMATIONS:
                 animateMove(screen, gamestate.history_Moves[-1], gamestate, clock, FPS)
-            
+        
 
+    
+    
 
 
 if __name__ == "__main__":
