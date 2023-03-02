@@ -52,6 +52,7 @@ class GameState(PieceMoves):
         # -------------------------------------------------
 
     def update(self, new_fen, undoing=False, ai=False):
+        
         self.current_FEN = new_fen
         self.player_toMove = self.current_FEN.split(" ")[1]
 
@@ -75,7 +76,7 @@ class GameState(PieceMoves):
         # Update Valid Moves
         self.validMoves = self.getValidMoves()
 
-        # This is to avoid append when undoing
+        # This is to avoid append new board when undoing, since it's the last
         if not undoing:
             self.history_Boards.append(new_fen)
 

@@ -13,7 +13,7 @@ class PieceMoves():
 
         # If exists en_passant
         if en_passant != "-":
-            # Need to convert from chees notation to the one i use (flip the values)
+            # Need to convert from chess notation to the one i use (flip the values)
             en_passantRow = coordY.index(int(en_passant[::-1][0]))
             en_passantCol = coordX.index(en_passant[::-1][1])
 
@@ -62,14 +62,17 @@ class PieceMoves():
                 # Add move if can capture en_passant
                 if en_passant != "-":
                     if row - 1 == en_passantRow:
+                        add_toRow, add_toCol = 0, 0
                         # If can capture en_passant and piece to the side is enemy
                         if (col + 1 == en_passantCol and splited_Board[row][col + 1].islower()):
                             # Pawn to capture if en_passant move
-                            pawn = (row - 1, col + 1)
-                            moves.append(Move((row, col), (row - 1, col + 1), self.fake_FEN, passant=pawn))
+                            add_toRow, add_toCol = -1, +1
                         elif (col - 1 == en_passantCol and splited_Board[row][col - 1].islower()):
-                            pawn = (row - 1, col - 1)
-                            moves.append(Move((row, col), (row - 1, col - 1), self.fake_FEN, passant=pawn))
+                            add_toRow, add_toCol = -1, -1
+
+                        if add_toRow != 0:
+                            pawn = (row + add_toRow, col + add_toCol)
+                            moves.append(Move((row, col), (row + add_toRow, col + add_toCol), self.fake_FEN, passant=pawn))
 
         ########### Black to move#######################################
             if self.player_toMove == "b":
@@ -102,14 +105,17 @@ class PieceMoves():
                 # Add move if can capture en_passant
                 if en_passant != "-":
                     if row + 1 == en_passantRow:
+                        add_toRow, add_toCol = 0, 0
                         # If can capture en_passant and piece to the side is enemy
                         if (col + 1 == en_passantCol and splited_Board[row][col + 1].isupper()):
                             # Pawn to capture if en_passant
-                            pawn = (row + 1, col + 1)
-                            moves.append(Move((row, col), (row + 1, col + 1), self.fake_FEN, passant=pawn))
+                            add_toRow, add_toCol = +1, +1
                         elif (col - 1 == en_passantCol and splited_Board[row][col - 1].isupper()):
-                            pawn = (row + 1, col - 1)
-                            moves.append(Move((row, col), (row + 1, col - 1), self.fake_FEN, passant=pawn))
+                            add_toRow, add_toCol = +1, -1           
+                                             
+                        if add_toRow != 0:
+                            pawn = (row + add_toRow, col + add_toCol)
+                            moves.append(Move((row, col), (row + add_toRow, col + add_toCol), self.fake_FEN, passant=pawn))
 
 # Get all rook moves for a certain square and add them to the moves list
 

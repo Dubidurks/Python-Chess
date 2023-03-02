@@ -10,7 +10,7 @@ from graphics import CELL_SIZE, FULL_WIDTH, WIDTH, HEIGHT, IMAGES, ANIMATIONS, \
 # If 1 cpu is on, it would take this player ("b" = black, "w" = white)
 default_cpu = "b"
 # 0 to 2 cpus
-cpus = 2
+cpus = 0
 
 def player_move(gamestate, moveMade, sqClicked, history_sqClicked):
 
@@ -134,6 +134,7 @@ def main():
             moveMade = False
             if ANIMATIONS:
                 animateMove(screen, gamestate.history_Moves[-1], gamestate, clock, FPS)
+            
 
 
 
