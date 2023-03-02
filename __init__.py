@@ -8,10 +8,10 @@ import AImove as ai
 from graphics import CELL_SIZE, FULL_WIDTH, WIDTH, HEIGHT, IMAGES, ANIMATIONS, \
     loadPieces, animateMove, drawGame
 
-# If 1 cpu is on, it would take this player ("b" = black, "w" = white)
-default_cpu = "b"
-# 0 to 2 cpus
-cpus = 2
+#human or cpu
+blacks_player = "cpu"
+whites_player = "cpu"
+
 
 def player_move(gamestate, moveMade, sqClicked, history_sqClicked):
 
@@ -32,9 +32,11 @@ def player_move(gamestate, moveMade, sqClicked, history_sqClicked):
 
         if len(history_sqClicked) == 2:  # after 2nd click
             move = Move(history_sqClicked[0], history_sqClicked[1], gamestate.fake_FEN)
-
             
-            if move in gamestate.validMoves:
+            #See if human to play
+            human_toPlay = True if (gamestate.player_toMove == "w" and whites_player == "human") or (gamestate.player_toMove == "b" and blacks_player == "human") else False
+            
+            if move in gamestate.validMoves and human_toPlay:
                 #Need to send the valid move, not the move i just created
                 selectedMove = gamestate.validMoves.index(move) 
                 
@@ -83,16 +85,16 @@ def main():
         for event in pg.event.get():  # Esto te permite usar la X pa salir del programa
             if event.type == pg.QUIT:
                 #print(gamestate.fake_FEN)
+                run = False
                 if AiThinking:
                         validMoveProcess.terminate()
-                run = False
 
             #---------------------Undo Move and reset game -------------------------------------------------------
             if event.type == pg.KEYDOWN:
                 # Undo Move if game continues
                 if event.key == pg.K_SPACE and not gamestate.gameOver:  # K_SPACE can be replaced by any key
                     # So i cant undo if only the initial board has been played
-                    if cpus != 0:
+                    if blacks_player == whites_player == "cpu":
                         # undo last two moves
                         if len(gamestate.history_Boards) > 2:
                             gamestate.undoMove()
@@ -127,31 +129,30 @@ def main():
 
 
         #--------------AI PLAYING---------------------------------------------
-        if 0 < cpus < 3:
 
-            #Cpu controlls two players or 1            
-            vsCpus = (gamestate.player_toMove == default_cpu or "w") if cpus == 2 else (gamestate.player_toMove == default_cpu)                          
+        #Cpu controlls two players or 1    
+        cpu_toPlay = True if (gamestate.player_toMove == "w" and whites_player == "cpu") or (gamestate.player_toMove == "b" and blacks_player == "cpu") else False
+        
+        #If cpus turns to move and game not over and not thinking
+        if cpu_toPlay and not gamestate.gameOver: 
+            if not AiThinking:
+                AiThinking = True
+                print("Thinking...")
+                #Used to pass data between threads
+                returnQueue = Queue()
+                validMoveProcess = Process(target=ai.findBestMove, args=(gamestate, returnQueue))                             
+                #Call with the parameters
+                validMoveProcess.start()
+
+            if not validMoveProcess.is_alive():
+                print("Done thinking")
+                validMove = returnQueue.get()
+                if validMove is None:
+                    validMove = ai.random_move(gamestate.validMoves)
+
+                moveMade = True
+                AiThinking = False
             
-            #If cpus turns to move and game not over and not thinking
-            if vsCpus and not gamestate.gameOver: 
-                if not AiThinking:
-                    AiThinking = True
-                    print("Thinking...")
-                    #Used to pass data between threads
-                    returnQueue = Queue()
-                    validMoveProcess = Process(target=ai.findBestMove, args=(gamestate, returnQueue))                             
-                    #Call with the parameters
-                    validMoveProcess.start()
-
-                if not validMoveProcess.is_alive():
-                    print("Done thinking")
-                    validMove = returnQueue.get()
-                    if validMove is None:
-                        validMove = ai.random_move(gamestate.validMoves)
-
-                    moveMade = True
-                    AiThinking = False
-                
         #-----------------------------------------------------------------------                
 
         if moveMade and not gamestate.gameOver:
