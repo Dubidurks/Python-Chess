@@ -226,7 +226,6 @@ class PieceMoves():
                                     elif piece != "1":
                                         blocking_piece = True
                                         
-                            print(attacking_piece, blocking_piece)
                             if not attacking_piece or blocking_piece:
                                 pawn = (row + add_toRow, col + add_toCol)
                                 moves.append(Move((row, col), (row + add_toRow, col + add_toCol), self.fake_FEN, passant=pawn))
@@ -464,6 +463,9 @@ class Move():
         if isinstance(other, Move):
             return self.moveID == other.moveID
         return False
+    
+    def __str__(self):
+        return self.getChessNotation()
 
     def getChessNotation(self):
 

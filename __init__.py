@@ -10,7 +10,7 @@ from graphics import CELL_SIZE, FULL_WIDTH, WIDTH, HEIGHT, IMAGES, ANIMATIONS, \
 # If 1 cpu is on, it would take this player ("b" = black, "w" = white)
 default_cpu = "b"
 # 0 to 2 cpus
-cpus = 0
+cpus = 2
 
 def player_move(gamestate, moveMade, sqClicked, history_sqClicked):
 
@@ -77,7 +77,7 @@ def main():
 
         for event in pg.event.get():  # Esto te permite usar la X pa salir del programa
             if event.type == pg.QUIT:
-                print(gamestate.fake_FEN)
+                #print(gamestate.fake_FEN)
                 run = False
 
             #---------------------Undo Move and reset game -------------------------------------------------------
@@ -105,7 +105,8 @@ def main():
 
                 #Random Move
                 if event.key == pg.K_n:
-                    validMove = ai.random_move(gamestate.validMoves)
+                    #validMove = ai.random_move(gamestate.validMoves)
+                    validMove = ai.findBestMove(gamestate)
                     moveMade = True
 
             elif event.type == pg.MOUSEBUTTONDOWN:

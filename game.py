@@ -8,7 +8,7 @@ from moves import PieceMoves, coordX, coordY
 class GameState(PieceMoves):
     def __init__(self):
         self.current_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -"
-        #self.current_FEN = "1nbq1bn1/1pppppp1/11n11111/p6p/Q1pkp1nR/P1111111/1PPPPPPP/R1BQKBNR w - -"
+        #self.current_FEN = "8/8/3n4/3k4/8/3K4/3N4/8 w - -"
 
         # fake_FEN sirve para reemplazar los números originales de la fen por tantos 1 como número aparezca
         # (debido a que un 3 significaría 3 epacios vacios (o 1's) por ejemplo)
