@@ -1,5 +1,7 @@
 import random
 
+# Load the Stockfish engine
+
 pieceScore = {
     "k" : 0,
     "q" : 15,
@@ -220,8 +222,10 @@ def negamax_algorithm(gamestate, depth, turnMultiplier):
 
     return maxScore
 
+
+
 #First call from init
-def findBestMove(gamestate, returnQueue):
+def findBestMove(gamestate, returnQueue=None):
     global nextMove, counter
     #To see how many times the method is called
     counter = 0
@@ -237,18 +241,23 @@ def findBestMove(gamestate, returnQueue):
     #Negamax with alpha beta prunning
     #alpha = current max score (so we start at minimum score), beta = current min score (so we start at the top score)
     negamax_algorithm_ab(gamestate, MAX_DEPTH, isMaximizing, -CHECKMATE, CHECKMATE)
-    print(counter)
+    print(f"Boards evaluated: {counter}")    
 
-    return returnQueue.put(nextMove)
+    if returnQueue != None:
+        return returnQueue.put(nextMove)
+    else:
+        return nextMove
 
 
 #Negamax with alpha beta prunning
 def negamax_algorithm_ab(gamestate, depth, turnMultiplier, alpha, beta):
+    
     global nextMove, counter
     counter += 1
 
     if depth == 0:
         return score_board(gamestate) * turnMultiplier
+
 
     validMoves = gamestate.getValidMoves()
     random.shuffle(validMoves)
@@ -280,6 +289,7 @@ def negamax_algorithm_ab(gamestate, depth, turnMultiplier, alpha, beta):
 Positive score is good for white, negative score means black is winning
 '''
 def score_board(gamestate):
+
     winner_multiplier = -1 if gamestate.player_toMove == "w" else 1
 
     if gamestate.checkMate:
@@ -289,13 +299,16 @@ def score_board(gamestate):
         return STALEMATE #Draw
     
     board = gamestate.fake_FEN.split(" ")[0].split("/")[0:8]
+    validMoves = gamestate.validMoves
+
 
     score = 0
     for row in range(len(board)):
         for col in range(len(board[row])):
             piece = board[row][col]
-            if piece != "1":
 
+            if piece != "1":
+                
                 #Score by position of the piece
                 piecePositionScore = 0
                 #No table for king, avoid errors
@@ -306,7 +319,7 @@ def score_board(gamestate):
                     else:
                         dict_key = piece.upper()
 
-                    piecePositionScore = piecePositionScores[dict_key][row][col]
+                    piecePositionScore = piecePositionScores[dict_key][row][col]                        
 
                 #Black wants to get the score down, white wants to make it higher
                 if piece.isupper():

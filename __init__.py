@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 from random import choice
+import os
+#Dont show initial banner of pygame
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "1"
 import pygame as pg
 from multiprocessing import Process, Queue
 from game import GameState
@@ -8,7 +11,7 @@ import AImove as ai
 from graphics import CELL_SIZE, FULL_WIDTH, WIDTH, HEIGHT, IMAGES, ANIMATIONS, \
     loadPieces, animateMove, drawGame
 
-#human or cpu
+#"human" or "cpu"
 blacks_player = "cpu"
 whites_player = "cpu"
 
@@ -63,6 +66,7 @@ def main():
     loadPieces(IMAGES)
 
     gamestate = GameState()
+    
     sqClicked = ()  # last click of the user
     history_sqClicked = []  # keeps track of player clicks in tuples ()
     moveMade = False
@@ -81,10 +85,9 @@ def main():
         screen.fill(0)
         drawGame(screen, gamestate, sqClicked)
 
-
-        for event in pg.event.get():  # Esto te permite usar la X pa salir del programa
+        # Allow to use the X to close the window
+        for event in pg.event.get():  
             if event.type == pg.QUIT:
-                #print(gamestate.fake_FEN)
                 run = False
                 if AiThinking:
                         validMoveProcess.terminate()
@@ -124,12 +127,13 @@ def main():
                     moveMade = True
 
             elif event.type == pg.MOUSEBUTTONDOWN:
-                validMove, moveMade, sqClicked, history_sqClicked = player_move(gamestate, moveMade, sqClicked, history_sqClicked)
+                if not gamestate.gameOver:
+                    validMove, moveMade, sqClicked, history_sqClicked = player_move(gamestate, moveMade, sqClicked, history_sqClicked)
         #---------------------------------------------------------------------------------
 
 
         #--------------AI PLAYING---------------------------------------------
-
+        
         #Cpu controlls two players or 1    
         cpu_toPlay = True if (gamestate.player_toMove == "w" and whites_player == "cpu") or (gamestate.player_toMove == "b" and blacks_player == "cpu") else False
         
@@ -137,7 +141,7 @@ def main():
         if cpu_toPlay and not gamestate.gameOver: 
             if not AiThinking:
                 AiThinking = True
-                print("Thinking...")
+                #print("Thinking...")
                 #Used to pass data between threads
                 returnQueue = Queue()
                 validMoveProcess = Process(target=ai.findBestMove, args=(gamestate, returnQueue))                             
@@ -145,7 +149,7 @@ def main():
                 validMoveProcess.start()
 
             if not validMoveProcess.is_alive():
-                print("Done thinking")
+                #print("Done thinking")
                 validMove = returnQueue.get()
                 if validMove is None:
                     validMove = ai.random_move(gamestate.validMoves)
@@ -157,14 +161,15 @@ def main():
 
         if moveMade and not gamestate.gameOver:
             gamestate.update(gamestate.makeMove(validMove))
+            
             moveMade = False
             if ANIMATIONS:
                 animateMove(screen, gamestate.history_Moves[-1], gamestate, clock, FPS)
         
-
-    
-    
-
-
+        if gamestate.gameOver and AiThinking:
+            validMoveProcess.terminate()
+            AiThinking = False
+        
 if __name__ == "__main__":
+    
     main()

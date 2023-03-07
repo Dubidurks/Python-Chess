@@ -49,9 +49,9 @@ def moves_panel(screen, gamestate):
     between_moves = 10
     # max number of moves that can fit in the panel (1 turn, 2 moves (that's why * 2 and the -2 is to not go pass the panel height))
     max_moves = (panel_surface.get_height() // between_turns) * 2 - 2  
-    num_moves = min(max_moves, len(log_moves))
 
     # If there are more moves than can fit, only show the most recent moves
+    num_moves = min(max_moves, len(log_moves))
     start_move = len(log_moves) - num_moves
     end_move = len(log_moves)
 

@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 from moves import PieceMoves, coordX, coordY
 
-# Still need to add:
-# 1. Add way to select Pawn Promotion in gui
-# 2. Stalemate logic for more than 50 moves or insufficient material
-
 class GameState(PieceMoves):
     def __init__(self):
         self.current_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -"
-        #self.current_FEN = "8/8/3n4/3k4/8/3K4/3N4/8 w - -"
+        #self.current_FEN =  "r1b4r/pk3pBp/n2B4/1p1NP2P/6P1/8/P1P1K3/q5b1 w - -"
+        #self.current_FEN = "8/8/3n1B2/3k4/4N3/3K4/8/8 w - -"
+        
 
         # fake_FEN sirve para reemplazar los números originales de la fen por tantos 1 como número aparezca
         # (debido a que un 3 significaría 3 epacios vacios (o 1's) por ejemplo)
@@ -48,12 +46,12 @@ class GameState(PieceMoves):
 
     def update(self, new_fen, undoing=False, ai=False):
         
-        self.current_FEN = new_fen
+        self.current_FEN = self.convert_rialFen(new_fen)
         self.player_toMove = self.current_FEN.split(" ")[1]
 
         # Sometimes the FEN notation gets bugged and the player is added on the first part of the FEN
         # This conditional realigns it
-        splited_fen = self.faked_FEN(new_fen).split(" ")
+        splited_fen = self.faked_FEN(self.current_FEN).split(" ")
         fen_board = splited_fen[0].split("/")
         if len(fen_board) > 8:
             
@@ -103,7 +101,49 @@ class GameState(PieceMoves):
         #If not doing ai recurssion
         if not ai and (self.checkMate or self.staleMate):
             self.gameOver = True
+
+    #Need to make it better
+    def convert_rialFen(self, fake_fen):
+
+        rial_fen = ""
+        fen_splited = fake_fen.split(" ")
+        board = fen_splited[0]
+        player = fen_splited[1]
+        castle = fen_splited[2]
+        en_passant = fen_splited[3]
         
+        count = 1
+        new_row = []
+        for y, char in enumerate(board):
+            if y < len(board):
+                if board[y].isdigit():
+                    try:
+                        if board[y + 1].isdigit():
+                            count += int(board[y])
+                        elif board[y + 1] == board[y - 1] == "/":
+                            count = int(board[y]) #8
+                            new_row.append(str(count))
+                        elif not board[y + 1].isdigit():
+                            new_row.append(str(count))
+                            count = 1
+                            
+
+                    except IndexError:
+                        new_row.append(str(count))
+                        count = 1
+                else:
+                    new_row.append(char)
+                    count = 1
+                    
+                    
+
+        rial_fen = "".join(new_row)
+        rial_fen += " " + player
+        rial_fen += " " + castle
+        rial_fen += " " + en_passant
+
+        return rial_fen        
+
     def faked_FEN(self, rial_fen):
         # For a fen that can be interpreted bya index (with 1's instead of raw numbers)
         fake_FEN = ""
