@@ -102,7 +102,7 @@ def end_game(screen, gamestate):
         end_game = f"Checkmate: {winner} wins."
     
     elif gamestate.staleMate:
-        endamge = "Stalemate."
+        end_game = "Stalemate."
 
     width, height = WIDTH / 2 - 200, HEIGHT / 2 - 10
     color = (0, 0, 0)
@@ -184,19 +184,33 @@ def highlight_moves(screen, gamestate, sqClicked):
     #Highlight last piece moved
     #no highlight if just the cpus are playing. EPILEPSY
     if len(gamestate.history_Moves) > 0 and not gamestate.gameOver:
+        startRow, startCol = gamestate.history_Moves[-1].startRow, gamestate.history_Moves[-1].startCol
         row, col = gamestate.history_Moves[-1].endRow, gamestate.history_Moves[-1].endCol
+        start_square_color = (startRow + startCol) % 2
         square_color = (row + col) % 2
         if square_color == 1:
             alpha = 180
         else:
             alpha = 150
+        
+        if start_square_color == 1:
+            start_alpha = 180
+        else:
+            start_alpha = 150
+
+        color = (164, 170, 50)
 
         lastMove_square = pg.Surface((CELL_SIZE, CELL_SIZE))
         lastMove_square.set_alpha(alpha)
-        lastMove_square.fill((164, 170, 50))
+        lastMove_square.fill(color)
         
         screen.blit(lastMove_square, (col * CELL_SIZE, row * CELL_SIZE))
 
+        lastMove_startSquare = pg.Surface((CELL_SIZE, CELL_SIZE))
+        lastMove_startSquare.set_alpha(start_alpha)
+        lastMove_startSquare.fill((164, 170, 50))
+        
+        screen.blit(lastMove_startSquare, (startCol * CELL_SIZE, startRow * CELL_SIZE))
     
 
 def addCoords(screen):
@@ -216,7 +230,7 @@ def drawPieces(screen, gamestate):
 
     board_lines = gamestate.fake_FEN.split(" ")[0].split("/")
 
-    # Estas lineas sirven para que boardlines no incluya lo que viene después de los octetos a la hora de leer las piezas
+    
     fen_Final_oct = board_lines[len(board_lines) - 1].split(" ")
     del board_lines[-1]
     board_lines.append(fen_Final_oct[0])

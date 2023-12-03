@@ -1,6 +1,8 @@
 import random
+from stockfish import Stockfish
 
-# Load the Stockfish engine
+coordY = (8, 7, 6, 5, 4, 3, 2, 1)
+coordX = ('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h')
 
 pieceScore = {
     "k" : 0,
@@ -256,6 +258,7 @@ def negamax_algorithm_ab(gamestate, depth, turnMultiplier, alpha, beta):
     counter += 1
 
     if depth == 0:
+        #return score
         return score_board(gamestate) * turnMultiplier
 
 
